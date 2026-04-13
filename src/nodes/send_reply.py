@@ -16,7 +16,7 @@ async def send_email_reply(state: SupportState) -> dict:
     Builds an OutgoingEmail from the current state and dispatches
     it through the email service. The draft becomes the final response.
     """
-    logger.info("Sending reply for: {}", state.email.subject)
+    logger.info("Attempting to send reply for ticket")
 
     # The draft is promoted to the final response
     final_response = state.draft_response
@@ -33,7 +33,7 @@ async def send_email_reply(state: SupportState) -> dict:
     try:
         sent = await send_reply(outgoing)
         if sent:
-            logger.info("Reply sent successfully to {}", state.email.sender)
+            logger.info("Reply sent successfully")
             return {
                 "final_response": final_response,
                 "status": TicketStatus.SENT,
@@ -49,7 +49,7 @@ async def send_email_reply(state: SupportState) -> dict:
         logger.error("Failed to send reply: {}", e)
         return {
             "final_response": final_response,
-            "status": TicketStatus.APPROVED,
+            "status": TicketStatus.SEND_FAILED,
             "metadata": {
                 **state.metadata,
                 "send_error": str(e),

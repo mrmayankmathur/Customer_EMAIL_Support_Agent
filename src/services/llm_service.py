@@ -34,7 +34,12 @@ async def invoke_llm(prompt: str) -> str:
         return response.content.strip()
     except Exception as e:
         logger.error("LLM invocation failed: {}", e)
-        raise
+        # Safety Net: If the LLM call fails (e.g., Azure content filter blocked it),
+        # return a generic fallback string instead of crashing the server.
+        # - For 'invoke_llm_json', it will fail to parse this and return {}, which 
+        #   triggers the fail-closed defaults in classifier/escalation.
+        # - For 'invoke_llm' (responder), this becomes the draft response alerting the human.
+        return "System notice: Request blocked by safety filters or API error. Manual review required."
 
 
 async def invoke_llm_json(prompt: str) -> dict:

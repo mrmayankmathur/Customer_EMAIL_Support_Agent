@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { LineChart, Line, ResponsiveContainer } from 'recharts';
 
 interface KpiCardProps {
@@ -10,10 +11,11 @@ interface KpiCardProps {
 }
 
 export default function KpiCard({ title, value, change, trend, type, rawData }: KpiCardProps) {
-  // Mock data for visualization
-  const sparklineData = Array.from({ length: 15 }, () => ({
-    val: Math.floor(Math.random() * 50) + 10,
-  }));
+  // Memoize sparkline data so it doesn't regenerate on every render
+  const sparklineData = useMemo(
+    () => Array.from({ length: 15 }, () => ({ val: Math.floor(Math.random() * 50) + 10 })),
+    []
+  );
 
   const trendColor = trend === 'up' ? 'text-accentCyan' : 'text-accentRed';
 

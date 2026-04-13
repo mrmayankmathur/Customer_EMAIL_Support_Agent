@@ -158,10 +158,9 @@ class KnowledgeBase:
                 allow_dangerous_deserialization=True,
             )
             logger.info("FAISS index loaded ({} vectors)", self._store.index.ntotal)
+            self._loaded = True
         except Exception as e:
             logger.error("Failed to load FAISS index: {}", e)
-
-        self._loaded = True
 
     def search(
         self,

@@ -30,6 +30,7 @@ class TicketStatus(str, Enum):
     PENDING_REVIEW = "pending_review"
     APPROVED = "approved"
     SENT = "sent"
+    SEND_FAILED = "send_failed"
     FOLLOW_UP_SCHEDULED = "follow_up_scheduled"
 
 

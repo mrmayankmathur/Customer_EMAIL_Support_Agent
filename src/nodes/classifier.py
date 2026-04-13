@@ -7,6 +7,7 @@ from loguru import logger
 from src.prompts.templates import CLASSIFIER_PROMPT
 from src.schemas.state import EmailCategory, SupportState
 from src.services.llm_service import invoke_llm_json
+from src.utils.security import sanitize_input
 
 
 # Mapping of raw category strings to the EmailCategory enum
@@ -28,8 +29,8 @@ async def classify_email(state: SupportState) -> dict:
     logger.info("Classifying email: {}", state.email.subject)
 
     prompt = CLASSIFIER_PROMPT.format(
-        subject=state.email.subject,
-        body=state.email.body,
+        subject=sanitize_input(state.email.subject),
+        body=sanitize_input(state.email.body),
     )
 
     result = await invoke_llm_json(prompt)

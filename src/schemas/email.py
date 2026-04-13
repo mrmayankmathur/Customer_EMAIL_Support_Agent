@@ -4,7 +4,7 @@ Pydantic models for email data.
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 
 from pydantic import BaseModel, Field
@@ -17,7 +17,7 @@ class IncomingEmail(BaseModel):
     subject: str
     body: str
     message_id: Optional[str] = None
-    received_at: datetime = Field(default_factory=datetime.now)
+    received_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 class OutgoingEmail(BaseModel):

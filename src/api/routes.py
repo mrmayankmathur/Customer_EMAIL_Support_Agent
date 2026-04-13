@@ -4,12 +4,15 @@ FastAPI routes for the Customer Support Email Agent.
 
 from __future__ import annotations
 
-import uuid
-from datetime import datetime
-from typing import Optional
-
+import asyncio
 import json
 import os
+import tempfile
+import threading
+import uuid
+from datetime import datetime, timezone
+from typing import Optional
+
 from fastapi import APIRouter, HTTPException
 from loguru import logger
 
@@ -26,52 +29,74 @@ _escalated_tickets: dict[str, dict] = {}
 _follow_ups: list[dict] = []
 
 DB_FILE = "data_store.json"
+_file_lock = threading.Lock()
 
 
 def load_data():
     global _all_tickets, _escalated_tickets, _follow_ups
     if os.path.exists(DB_FILE):
         try:
-            with open(DB_FILE, "r") as f:
-                data = json.load(f)
-                _all_tickets = data.get("_all_tickets", {})
-                _escalated_tickets = data.get("_escalated_tickets", {})
-                _follow_ups = data.get("_follow_ups", [])
+            with _file_lock:
+                with open(DB_FILE, "r") as f:
+                    data = json.load(f)
+                    _all_tickets = data.get("_all_tickets", {})
+                    _escalated_tickets = data.get("_escalated_tickets", {})
+                    _follow_ups = data.get("_follow_ups", [])
         except Exception as e:
             logger.error("Failed to load DB: {}", e)
 
 
 def save_data():
-    with open(DB_FILE, "w") as f:
-        json.dump(
-            {
-                "_all_tickets": _all_tickets,
-                "_escalated_tickets": _escalated_tickets,
-                "_follow_ups": _follow_ups,
-            },
-            f,
-            indent=2,
-        )
+    """Atomically persist data to disk with file locking."""
+    payload = json.dumps(
+        {
+            "_all_tickets": _all_tickets,
+            "_escalated_tickets": _escalated_tickets,
+            "_follow_ups": _follow_ups,
+        },
+        indent=2,
+    )
+    with _file_lock:
+        # Write to a temp file, then atomically replace the target
+        fd, tmp_path = tempfile.mkstemp(dir=".", suffix=".tmp")
+        try:
+            with os.fdopen(fd, "w") as tmp_f:
+                tmp_f.write(payload)
+            os.replace(tmp_path, DB_FILE)
+        except Exception:
+            # Clean up temp file on failure
+            if os.path.exists(tmp_path):
+                os.unlink(tmp_path)
+            raise
 
 
 load_data()
 
 
-@router.post("/process-email")
-async def process_email(email: IncomingEmail) -> dict:
+def _generate_ticket_id() -> str:
+    """Generate a collision-resistant ticket ID (full UUID hex)."""
+    new_id = uuid.uuid4().hex
+    # Retry in the astronomically unlikely event of a collision
+    while new_id in _all_tickets:
+        new_id = uuid.uuid4().hex
+    return new_id
+
+
+def _redact_email(email_addr: str) -> str:
+    """Redact an email address for logging (e.g. j***@company.com)."""
+    if "@" not in email_addr:
+        return "***"
+    local, domain = email_addr.split("@", 1)
+    return f"{local[0]}***@{domain}" if local else f"***@{domain}"
+
+
+def _persist_ticket(email: IncomingEmail, result: dict) -> dict:
     """
-    Accept an incoming email and run it through the support agent graph.
-    Returns the agent's response and metadata.
+    Shared helper to create a ticket record and persist it.
+    Used by both process_email() and process_email_batch().
     """
-    logger.info("Processing email from: {} — subject: {}", email.sender, email.subject)
+    ticket_id = _generate_ticket_id()
 
-    initial_state = SupportState(email=email)
-    result = await workflow.ainvoke(initial_state)
-
-    # Generate a ticket ID for tracking
-    ticket_id = str(uuid.uuid4())[:8]
-
-    # Build the full ticket record
     ticket_record = {
         "ticket_id": ticket_id,
         "email": email.model_dump(mode="json"),
@@ -85,7 +110,7 @@ async def process_email(email: IncomingEmail) -> dict:
         "status": result.get("status", "processing"),
         "context": result.get("context", []),
         "metadata": result.get("metadata", {}),
-        "created_at": datetime.now().isoformat(),
+        "created_at": datetime.now(timezone.utc).isoformat(),
     }
 
     # Store every processed email
@@ -101,7 +126,7 @@ async def process_email(email: IncomingEmail) -> dict:
             "draft_response": result.get("draft_response", ""),
             "escalation_reason": result.get("escalation_reason", ""),
             "status": "pending_review",
-            "created_at": datetime.now().isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
         }
         logger.info("Ticket {} queued for human review", ticket_id)
 
@@ -111,8 +136,7 @@ async def process_email(email: IncomingEmail) -> dict:
         _follow_ups.append(
             {
                 "ticket_id": ticket_id,
-                "email_sender": email.sender,
-                "email_subject": email.subject,
+                "email_sender": _redact_email(email.sender),
                 "follow_up_date": (
                     follow_up_date.isoformat() if follow_up_date else None
                 ),
@@ -122,6 +146,21 @@ async def process_email(email: IncomingEmail) -> dict:
         )
 
     save_data()
+    return ticket_record
+
+
+@router.post("/process-email")
+async def process_email(email: IncomingEmail) -> dict:
+    """
+    Accept an incoming email and run it through the support agent graph.
+    Returns the agent's response and metadata.
+    """
+    logger.info("Processing email — ticket pipeline initiated")
+
+    initial_state = SupportState(email=email)
+    result = await workflow.ainvoke(initial_state)
+
+    ticket_record = _persist_ticket(email, result)
     return ticket_record
 
 
@@ -233,7 +272,7 @@ async def get_system_config() -> dict:
 async def process_email_batch() -> dict:
     """
     Fetch unread emails from the IMAP mailbox and process each through
-    the support agent graph.
+    the support agent graph. Each email is persisted and tracked.
     """
     logger.info("Starting batch email processing")
 
@@ -246,21 +285,19 @@ async def process_email_batch() -> dict:
         try:
             initial_state = SupportState(email=email)
             result = await workflow.ainvoke(initial_state)
+            ticket_record = _persist_ticket(email, result)
             results.append(
                 {
-                    "sender": email.sender,
-                    "subject": email.subject,
-                    "status": result.get("status", "processing"),
-                    "category": result.get("category", "unknown"),
-                    "needs_escalation": result.get("needs_escalation", False),
+                    "ticket_id": ticket_record["ticket_id"],
+                    "status": ticket_record["status"],
+                    "category": ticket_record["category"],
+                    "needs_escalation": ticket_record["needs_escalation"],
                 }
             )
         except Exception as e:
-            logger.error("Failed to process email '{}': {}", email.subject, e)
+            logger.error("Failed to process batch email: {}", e)
             results.append(
                 {
-                    "sender": email.sender,
-                    "subject": email.subject,
                     "status": "error",
                     "error": str(e),
                 }
@@ -342,7 +379,7 @@ async def review_ticket(
         new_status = "sent" if sent else "approved"
         ticket["status"] = new_status
         ticket["final_response"] = response_text
-        ticket["reviewed_at"] = datetime.now().isoformat()
+        ticket["reviewed_at"] = datetime.now(timezone.utc).isoformat()
 
         # Also update master record
         if ticket_id in _all_tickets:
@@ -357,7 +394,7 @@ async def review_ticket(
         }
     except Exception as e:
         logger.error("Failed to send reviewed reply for ticket {}: {}", ticket_id, e)
-        raise HTTPException(status_code=500, detail=f"Failed to send email: {e}")
+        raise HTTPException(status_code=500, detail="Failed to send email")
 
 
 @router.get("/follow-ups")

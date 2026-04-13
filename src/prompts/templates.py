@@ -14,8 +14,10 @@ Classify the following email into exactly ONE of these categories:
 Also provide a confidence score between 0.0 and 1.0 indicating how certain you are,
 and a brief one-sentence reasoning for your classification.
 
+--- BEGIN USER EMAIL ---
 Email Subject: {subject}
 Email Body: {body}
+--- END USER EMAIL ---
 
 Respond in valid JSON with exactly these keys:
 {{"category": "<category>", "confidence": <float>, "reasoning": "<one sentence>"}}
@@ -30,10 +32,13 @@ information. If the context does not contain enough information to fully resolve
 issue, acknowledge the concern and let the customer know a specialist will follow up.
 
 Category: {category}
+
+--- BEGIN USER EMAIL ---
 Customer Name: {sender}
 Customer Email Subject: {subject}
 Customer Email Body:
 {body}
+--- END USER EMAIL ---
 
 Relevant Knowledge Base Context:
 {context}
@@ -64,9 +69,10 @@ Escalate if ANY of these conditions are true:
 - The issue involves legal, compliance, or security concerns
 - The customer has explicitly requested to speak with a human
 
-Customer Email:
+--- BEGIN USER EMAIL ---
 Subject: {subject}
 Body: {body}
+--- END USER EMAIL ---
 
 AI Category: {category}
 AI Confidence: {confidence}

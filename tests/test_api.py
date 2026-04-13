@@ -2,6 +2,8 @@
 Smoke tests for the FastAPI application.
 """
 
+from unittest.mock import AsyncMock, patch
+
 import pytest
 from httpx import ASGITransport, AsyncClient
 
@@ -50,10 +52,12 @@ async def test_review_nonexistent_ticket():
 
 
 @pytest.mark.asyncio
-async def test_process_email_batch_no_credentials():
+@patch("src.services.email_service.fetch_new_emails", new_callable=AsyncMock, return_value=[])
+async def test_process_email_batch_no_credentials(mock_fetch):
     """Batch processing with no credentials should return 0 processed."""
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         response = await client.post("/api/v1/process-email-batch")
     assert response.status_code == 200
     data = response.json()
     assert data["processed"] == 0
+    mock_fetch.assert_awaited_once()

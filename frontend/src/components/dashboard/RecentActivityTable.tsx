@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Ticket } from '../../store';
 
 interface Props {
@@ -6,8 +6,6 @@ interface Props {
 }
 
 export default function RecentActivityTable({ tickets }: Props) {
-  const navigate = useNavigate();
-
   return (
     <div className="bg-lightBg dark:bg-darkCard border border-borderLight dark:border-borderDark rounded-2xl shadow-sm overflow-hidden flex-1">
       <div className="px-6 py-4 border-b border-borderLight dark:border-borderDark">
@@ -26,12 +24,19 @@ export default function RecentActivityTable({ tickets }: Props) {
           </thead>
           <tbody>
             {tickets.map((t) => (
-              <tr 
-                key={t.ticket_id} 
-                onClick={() => navigate(`/ticket/${t.ticket_id}`)}
-                className="border-b border-borderLight dark:border-borderDark hover:bg-gray-50 dark:hover:bg-gray-800/50 cursor-pointer transition-colors"
+              <tr
+                key={t.ticket_id}
+                className="border-b border-borderLight dark:border-borderDark hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
               >
-                <td className="px-6 py-4 font-mono text-accentCyan">#{t.ticket_id}</td>
+                <td className="px-6 py-4 font-mono text-accentCyan">
+                  <Link
+                    to={`/ticket/${t.ticket_id}`}
+                    className="hover:underline focus:outline-none focus:ring-2 focus:ring-accentCyan rounded"
+                    aria-label={`View ticket ${t.ticket_id}`}
+                  >
+                    #{t.ticket_id}
+                  </Link>
+                </td>
                 <td className="px-6 py-4 font-medium dark:text-gray-200">{t.email.sender}</td>
                 <td className="px-6 py-4 text-gray-500 dark:text-gray-400 max-w-[200px] truncate">{t.email.subject}</td>
                 <td className="px-6 py-4">

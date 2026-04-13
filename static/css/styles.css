@@ -375,6 +375,12 @@ body::before {
   outline: none;
 }
 
+.btn:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px var(--accent-primary-glow);
+}
+
 .btn-primary {
   background: var(--accent-gradient);
   color: white;
@@ -720,6 +726,12 @@ body::before {
 .detail-close:hover {
   background: rgba(255, 255, 255, 0.08);
   color: var(--text-primary);
+}
+
+.detail-close:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px var(--accent-primary-glow);
 }
 
 .detail-body {
