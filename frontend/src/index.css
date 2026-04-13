@@ -1,0 +1,18 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply antialiased transition-colors duration-200;
+  }
+}
+
+/* React Flow custom node styles */
+.react-flow__node {
+  @apply rounded-xl border transition-all;
+}
+
+.react-flow__handle {
+  @apply w-2 h-2 rounded-full border-none;
+}

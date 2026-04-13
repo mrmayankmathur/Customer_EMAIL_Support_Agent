@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="AI-powered customer support email agent dashboard — classify, respond, and manage support emails with LangGraph">
+    <title>Support Agent — Dashboard</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+
+<div class="app-container">
+    <!-- ============ Sidebar ============ -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <div class="logo-icon">🤖</div>
+                <div class="logo-text">
+                    Support Agent
+                    <span>AI-Powered Email</span>
+                </div>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav">
+            <div class="nav-item active" data-view="compose" id="nav-compose">
+                <span class="nav-icon">✉️</span>
+                <span>Compose</span>
+            </div>
+            <div class="nav-item" data-view="inbox" id="nav-inbox">
+                <span class="nav-icon">📥</span>
+                <span>Inbox</span>
+                <span class="nav-badge" id="inbox-badge" style="display:none">0</span>
+            </div>
+            <div class="nav-item" data-view="review" id="nav-review">
+                <span class="nav-icon">👁️</span>
+                <span>Review Queue</span>
+                <span class="nav-badge" id="review-badge" style="display:none">0</span>
+            </div>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="sidebar-status">
+                <div class="status-dot"></div>
+                System Online — LangGraph
+            </div>
+        </div>
+    </aside>
+
+    <!-- ============ Main Content ============ -->
+    <main class="main-content">
+
+        <!-- ──── Compose View ──── -->
+        <section class="view active" id="view-compose">
+            <div class="page-header">
+                <h1 class="page-title">Compose Mock Email</h1>
+                <p class="page-subtitle">Send a test email through the AI support pipeline and see the full agent output in real-time.</p>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">📧 New Email</h2>
+                </div>
+                <div class="card-body">
+                    <form id="compose-form">
+                        <div class="compose-grid">
+                            <div class="form-group">
+                                <label class="form-label" for="email-sender">From (sender)</label>
+                                <input class="form-input" type="text" id="email-sender" placeholder="customer@example.com" value="john.doe@example.com" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="email-subject">Subject</label>
+                                <input class="form-input" type="text" id="email-subject" placeholder="e.g. Issue with my billing" required>
+                            </div>
+                            <div class="form-group full-width">
+                                <label class="form-label" for="email-body">Email Body</label>
+                                <textarea class="form-textarea" id="email-body" placeholder="Write the customer's email body here…" required></textarea>
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary" id="btn-send">
+                                <span id="btn-send-text">🚀 Process Email</span>
+                                <span id="btn-send-spinner" style="display:none"><span class="spinner"></span> Processing…</span>
+                            </button>
+                            <button type="button" class="btn btn-secondary" id="btn-sample">📋 Load Sample</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Result Panel (hidden until processing) -->
+            <div class="result-panel" id="result-panel" style="display:none">
+                <div class="card" style="margin-top:24px">
+                    <div class="card-header">
+                        <h2 class="card-title">⚡ Pipeline Result</h2>
+                        <span class="badge" id="result-status-badge"></span>
+                    </div>
+                    <div class="card-body">
+                        <div class="pipeline-steps" id="pipeline-steps"></div>
+                        <div class="draft-section">
+                            <h4>📝 AI Draft Response</h4>
+                            <div class="draft-text" id="draft-response-text"></div>
+                        </div>
+                        <div id="escalation-info" style="display:none; margin-top:16px">
+                            <div class="draft-section" style="border-left: 3px solid var(--color-warning);">
+                                <h4>⚠️ Escalation Reason</h4>
+                                <div class="draft-text" id="escalation-reason-text"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ──── Inbox View ──── -->
+        <section class="view" id="view-inbox">
+            <div class="page-header">
+                <h1 class="page-title">Email Inbox</h1>
+                <p class="page-subtitle">View all processed emails with their classification, agent response, and pipeline details.</p>
+            </div>
+
+            <div class="inbox-toolbar">
+                <div class="search-box">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" id="inbox-search" placeholder="Search emails by sender, subject, or category…">
+                </div>
+                <div class="inbox-stats">
+                    <div class="stat-item">
+                        <span>Total:</span>
+                        <span class="stat-number" id="stat-total">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span>Escalated:</span>
+                        <span class="stat-number" id="stat-escalated">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span>Sent:</span>
+                        <span class="stat-number" id="stat-sent">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <div id="inbox-list" class="email-list">
+                <div class="empty-state" id="inbox-empty">
+                    <div class="empty-icon">📭</div>
+                    <h3>No emails yet</h3>
+                    <p>Go to the Compose tab to process your first mock email.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ──── Review Queue View ──── -->
+        <section class="view" id="view-review">
+            <div class="page-header">
+                <h1 class="page-title">Review Queue</h1>
+                <p class="page-subtitle">Emails flagged for human review. Approve the AI draft or provide a revised response.</p>
+            </div>
+
+            <div id="review-list" class="email-list">
+                <div class="empty-state" id="review-empty">
+                    <div class="empty-icon">✅</div>
+                    <h3>All clear</h3>
+                    <p>No emails pending human review right now.</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+</div>
+
+<!-- ============ Detail Overlay ============ -->
+<div class="detail-overlay" id="detail-overlay">
+    <div class="detail-panel">
+        <div class="detail-header">
+            <h3 id="detail-title">Email Details</h3>
+            <button class="detail-close" id="detail-close">&times;</button>
+        </div>
+        <div class="detail-body" id="detail-body"></div>
+    </div>
+</div>
+
+<!-- ============ Toast Container ============ -->
+<div class="toast-container" id="toast-container"></div>
+
+<script src="/static/js/app.js"></script>
+</body>
+</html>
