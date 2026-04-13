@@ -11,22 +11,22 @@ Incoming Email
       │
       ▼
 ┌─────────────┐
-│  Classifier  │  ← Categorizes intent (billing, technical, general, etc.)
+│  Classifier │  ← Categorizes intent (billing, technical, general, etc.)
 └──────┬──────┘
        │
        ▼
 ┌─────────────┐
-│  Retriever   │  ← Fetches relevant knowledge base articles
+│  Retriever  │  ← Fetches relevant knowledge base articles
 └──────┬──────┘
        │
        ▼
 ┌─────────────┐
-│  Responder   │  ← Drafts a reply using context + LLM
+│  Responder  │  ← Drafts a reply using context + LLM
 └──────┬──────┘
        │
        ▼
 ┌─────────────┐
-│  Escalation  │  ← Routes to human agent if confidence is low
+│  Escalation │  ← Routes to human agent if confidence is low
 └─────────────┘
 ```
 
