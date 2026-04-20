@@ -79,13 +79,13 @@ async def _persist_ticket(email: IncomingEmail, result: dict) -> dict:
     }
 
     try:
-        supabase.table("tickets").insert(ticket_data).execute()
+        response = supabase.table("tickets").insert(ticket_data).execute()
         return ticket_data
     except Exception as e:
         logger.error("Supabase insertion failed: {}", e)
-        # Fallback to returning the record so the API call doesn't fail,
-        # but warn that it wasn't saved.
-        return ticket_data
+        # Raise HTTP exception so the frontend doesn't redirect to a missing ticket
+        raise HTTPException(status_code=500, detail=f"Database save failed: {str(e)}")
+
 
 
 @router.post("/process-email", dependencies=[Depends(verify_token)])
