@@ -14,6 +14,8 @@ jobs:
           fetch-depth: 0
           lfs: true
       - name: Push to hub
-        env:
-          HF_TOKEN: ${{ secrets.HF_TOKEN }}
-        run: git push --force "https://token:$HF_TOKEN@huggingface.co/spaces/mrmayankmathurorg/Customer-EMAIL-Agent" main
+        uses: huggingface/github-action@v1
+        with:
+          factory_repo: mrmayankmathur/Customer_EMAIL_Support_Agent
+          space_id: mrmayankmathurorg/Customer-EMAIL-Agent
+          hf_token: ${{ secrets.HF_TOKEN }}
