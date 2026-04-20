@@ -16,4 +16,13 @@ jobs:
       - name: Push to hub
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
-        run: git push --force https://mrmayankmathur:$HF_TOKEN@huggingface.co/spaces/mrmayankmathurorg/Customer-EMAIL-Agent main
+        # We delete the .git folder, re-init, and force push so HF only gets the CLEAN current state, without the problematic history.
+        run: |
+          rm -rf .git
+          git init
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add .
+          git commit -m "Initial sync to Hugging Face"
+          git remote add origin "https://mrmayankmathurorg:$HF_TOKEN@huggingface.co/spaces/mrmayankmathurorg/Customer-EMAIL-Agent"
+          git push --force origin main
