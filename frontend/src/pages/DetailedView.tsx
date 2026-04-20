@@ -69,16 +69,16 @@ export default function DetailedView() {
           <div className="p-6 flex-1 overflow-y-auto space-y-4">
              <div>
                <p className="text-xs text-gray-400 uppercase mb-1">From</p>
-               <p className="font-medium dark:text-darkText">{ticket.email.sender}</p>
+               <p className="font-medium dark:text-darkText">{ticket.sender || 'Unknown'}</p>
              </div>
              <div>
                <p className="text-xs text-gray-400 uppercase mb-1">Subject</p>
-               <p className="font-semibold text-lg dark:text-white">{ticket.email.subject}</p>
+               <p className="font-semibold text-lg dark:text-white">{ticket.subject || 'No Subject'}</p>
              </div>
              <div>
                <p className="text-xs text-gray-400 uppercase mb-2">Body</p>
                <div className="text-gray-600 dark:text-gray-300 whitespace-pre-wrap font-mono text-sm bg-gray-50 dark:bg-black/20 p-4 rounded-xl border border-gray-100 dark:border-gray-800">
-                 {ticket.email.body}
+                 {ticket.body || ''}
                </div>
              </div>
           </div>
