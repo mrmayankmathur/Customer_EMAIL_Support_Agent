@@ -51,3 +51,5 @@ pnpm-debug.log*
 data_store.json
 *.sqlite3
 *.db
+*.faiss
+
