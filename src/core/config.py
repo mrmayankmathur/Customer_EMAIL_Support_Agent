@@ -28,6 +28,14 @@ class Settings(BaseSettings):
     EMAIL_USERNAME: str = ""
     EMAIL_PASSWORD: str = ""
 
+    # --- Persistence (Supabase) ---
+    SUPABASE_URL: str = ""
+    SUPABASE_KEY: str = ""
+
+    # --- Security ---
+    # Secret token to protect the backend on public platforms (HF Spaces)
+    API_TOKEN: str = "dev_token_change_me"
+
     # --- App ---
     APP_ENV: str = "development"
     LOG_LEVEL: str = "DEBUG"
