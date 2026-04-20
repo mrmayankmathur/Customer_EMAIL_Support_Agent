@@ -37,8 +37,8 @@ export default function RecentActivityTable({ tickets }: Props) {
                     #{t.ticket_id}
                   </Link>
                 </td>
-                <td className="px-6 py-4 font-medium dark:text-gray-200">{t.email.sender}</td>
-                <td className="px-6 py-4 text-gray-500 dark:text-gray-400 max-w-[200px] truncate">{t.email.subject}</td>
+                <td className="px-6 py-4 font-medium dark:text-gray-200">{t.sender || 'Unknown'}</td>
+                <td className="px-6 py-4 text-gray-500 dark:text-gray-400 max-w-[200px] truncate">{t.subject || '(no subject)'}</td>
                 <td className="px-6 py-4">
                   <span className="px-2 py-1 rounded bg-gray-100 dark:bg-gray-700 text-xs font-medium uppercase text-gray-600 dark:text-gray-300">
                     {t.category}

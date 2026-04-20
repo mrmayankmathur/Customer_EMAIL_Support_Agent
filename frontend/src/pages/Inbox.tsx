@@ -64,8 +64,8 @@ export default function Inbox() {
     const q = search.toLowerCase();
     setFilteredTickets(
       tickets.filter(t => 
-        t.email.sender.toLowerCase().includes(q) ||
-        t.email.subject.toLowerCase().includes(q) ||
+        t.sender?.toLowerCase().includes(q) ||
+        t.subject?.toLowerCase().includes(q) ||
         t.category.toLowerCase().includes(q)
       )
     );
@@ -130,11 +130,11 @@ export default function Inbox() {
                     className="hover:bg-gray-50 dark:hover:bg-[#374151] cursor-pointer transition-colors group"
                   >
                     <td className="px-6 py-4">
-                      <div className="font-semibold dark:text-gray-200">{t.email.sender}</div>
+                      <div className="font-semibold dark:text-gray-200">{t.sender || 'Unknown'}</div>
                       <div className="font-mono text-[10px] text-gray-400 mt-1 uppercase tracking-wider">#{t.ticket_id}</div>
                     </td>
                     <td className="px-6 py-4 text-gray-600 dark:text-gray-300 max-w-sm truncate">
-                      {t.email.subject || '(no subject)'}
+                      {t.subject || '(no subject)'}
                     </td>
                     <td className="px-6 py-4">
                       <span className={`px-2.5 py-1 rounded border text-[10px] font-bold uppercase tracking-wider ${getCategoryBadgeColor(t.category)}`}>

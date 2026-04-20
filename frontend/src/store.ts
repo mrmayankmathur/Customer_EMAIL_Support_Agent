@@ -27,11 +27,9 @@ export interface Ticket {
   confidence: number;
   status: string;
   needs_escalation: boolean;
-  email: {
-    sender: string;
-    subject: string;
-    body: string;
-  };
+  sender?: string;
+  subject?: string;
+  body?: string;
   created_at: string;
 }
 

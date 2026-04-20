@@ -9,11 +9,9 @@ interface ReviewItem {
   status: string;
   escalation_reason: string;
   draft_response: string;
-  email: {
-    sender: string;
-    subject: string;
-    body: string;
-  };
+  sender?: string;
+  subject?: string;
+  body?: string;
   created_at: string;
 }
 
@@ -75,7 +73,7 @@ export default function ReviewQueue() {
             <div key={t.ticket_id} className="bg-lightBg dark:bg-darkCard border border-borderLight dark:border-borderDark rounded-2xl flex flex-col overflow-hidden shadow-sm hover:shadow-glow-cyan transition-shadow animation-fade-in">
               <div className="p-5 border-b border-borderLight dark:border-borderDark bg-gray-50 dark:bg-[#1a212e] flex justify-between items-center">
                  <div className="flex items-center gap-3">
-                   <h3 className="text-sm font-semibold dark:text-white uppercase tracking-wider">{t.email.subject}</h3>
+                   <h3 className="text-sm font-semibold dark:text-white uppercase tracking-wider">{t.subject || 'No Subject'}</h3>
                    <span className="px-2 py-0.5 rounded border border-gray-600 bg-gray-800 text-[10px] font-mono text-gray-300">#{t.ticket_id}</span>
                  </div>
                  <button onClick={() => navigate(`/ticket/${t.ticket_id}`)} className="text-xs font-bold text-accentCyan hover:underline uppercase tracking-wider">
@@ -88,7 +86,7 @@ export default function ReviewQueue() {
                  <div className="w-full md:w-1/3 space-y-4">
                     <div>
                       <p className="text-xs text-gray-400 uppercase mb-1">From</p>
-                      <p className="font-medium dark:text-darkText">{t.email.sender}</p>
+                      <p className="font-medium dark:text-darkText">{t.sender || 'Unknown'}</p>
                     </div>
                     <div>
                       <p className="text-xs text-accentRed uppercase font-bold mb-1 flex items-center gap-1">
