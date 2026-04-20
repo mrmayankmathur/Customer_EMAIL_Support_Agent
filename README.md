@@ -1,3 +1,12 @@
+---
+title: Customer EMAIL Agent
+emoji: 📧
+colorFrom: blue
+colorTo: indigo
+sdk: docker
+pinned: false
+---
+
 # 📧 Customer Support Email Agent
 
 An AI-powered customer support email agent built with **LangGraph**, **LangChain**, and **FastAPI**.
